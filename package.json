@@ -1,0 +1,13 @@
+{
+  "name": "library-management-api",
+  "version": "1.0.0",
+  "description": "A Library Management API built with Node.js and Express.js, storing all data in local in-memory arrays (no database).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
