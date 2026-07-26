@@ -1,95 +1,102 @@
 # 📚 Library Management API
 
-A Library Management API built with **Node.js** and **Express.js**. All data is stored
-in local, in-memory JavaScript arrays — no database is used. Data resets whenever the
-server restarts.
+A simple **Library Management System API** built using **Node.js** and **Express.js**, with all data stored in local in-memory JavaScript arrays (no database used).
 
-## Tech Stack
+---
 
+## 🚀 Tech Stack
 - Node.js
 - Express.js
-- No database (MongoDB, MySQL, PostgreSQL, Firebase are all intentionally absent)
+- cors
+- dotenv
+- nodemon (dev dependency)
 
-## Project Structure
+> ❌ No database (MongoDB, MySQL, PostgreSQL, Firebase, etc.) is used. All data resets when the server restarts.
 
+---
+
+## 📂 Folder Structure
 ```
-library-api/
-├── server.js                     # Entry point — starts the HTTP server
+library-management-api/
+├── controllers/
+│   └── library.controller.js
+├── routers/
+│   └── library.router.js
+├── index.js
 ├── package.json
-├── src/
-│   ├── app.js                    # Express app setup, route mounting, middleware
-│   ├── data/
-│   │   └── store.js              # In-memory arrays: books, members, borrowRecords
-│   ├── controllers/
-│   │   ├── bookController.js     # Add / list books
-│   │   ├── memberController.js   # Register / list members
-│   │   └── borrowController.js   # Borrow / return / list borrow records
-│   ├── routes/
-│   │   ├── bookRoutes.js
-│   │   ├── memberRoutes.js
-│   │   └── borrowRoutes.js
-│   ├── middleware/
-│   │   └── errorHandlers.js      # 404 handler + global error handler
-│   └── utils/
-│       └── validate.js           # Shared validation helpers
+├── .env
+├── .gitignore
+└── README.md
 ```
 
-## Setup Instructions
+---
 
-1. **Install dependencies**
+## ⚙️ Setup Instructions
 
+1. **Extract the zip file** and open the folder in your terminal / code editor.
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. **Run the server**
-
-   ```bash
-   npm start
+3. A `.env` file is already included in the root directory:
    ```
+   PORT=5000
+   ```
+   You can change the port number if needed.
 
-   Or, for auto-restart on file changes (Node 18.11+):
+4. **Run the server**
 
+   Development mode (auto-restarts on file changes using nodemon):
    ```bash
    npm run dev
    ```
 
-3. The API will be running at:
-
-   ```
-   http://localhost:3000
-   ```
-
-   You can change the port with the `PORT` environment variable:
-
+   Production mode:
    ```bash
-   PORT=4000 npm start
+   npm start
    ```
 
-4. Visiting `GET /` returns a list of all available endpoints — useful as a quick
-   health check.
+5. Server will start at:
+   ```
+   http://localhost:5000
+   ```
 
-## API Documentation
+6. Visit the root route to confirm it's running:
+   ```
+   GET http://localhost:5000/
+   ```
+   Response:
+   ```json
+   {
+     "success": true,
+     "message": "Library Management API is running 🚀"
+   }
+   ```
 
-All endpoints are prefixed with `/api/library`. All responses are JSON.
+---
+
+## 📚 API Endpoints
+
+Base URL: `http://localhost:5000/api/library`
+
+| # | Method | Endpoint              | Description               |
+|---|--------|------------------------|----------------------------|
+| 1 | POST   | `/books`               | Add a new book            |
+| 2 | POST   | `/members`             | Register a new member     |
+| 3 | POST   | `/borrow/:bookId`      | Borrow a book              |
+| 4 | PUT    | `/return/:borrowId`    | Return a book               |
+| 5 | GET    | `/books`               | Get all books               |
+| 6 | GET    | `/borrowed`            | Get all borrowed records   |
+| 7 | GET    | `/members`             | Get all members             |
 
 ---
 
 ### 1. Add a New Book
+**POST** `/api/library/books`
 
-`POST /api/library/books`
-
-**Request body**
-
-| Field        | Type   | Required | Description               |
-|--------------|--------|----------|---------------------------|
-| title        | String | ✅       | Name of the book          |
-| author       | String | ✅       | Author's name             |
-| category     | String | ✅       | Book category             |
-| totalCopies  | Number | ✅       | Total number of copies    |
-
-**Example request**
-
+**Request Body:**
 ```json
 {
   "title": "Atomic Habits",
@@ -99,11 +106,11 @@ All endpoints are prefixed with `/api/library`. All responses are JSON.
 }
 ```
 
-**Success response — `201 Created`**
-
+**Success Response (201):**
 ```json
 {
   "success": true,
+  "message": "Book added successfully",
   "data": {
     "id": 1,
     "title": "Atomic Habits",
@@ -115,25 +122,20 @@ All endpoints are prefixed with `/api/library`. All responses are JSON.
 }
 ```
 
-**Errors**
-- `400` — missing required field(s), or `totalCopies` is not a non-negative integer.
+**Error Response (400) — Missing fields:**
+```json
+{
+  "success": false,
+  "message": "title, author, category and totalCopies are required fields"
+}
+```
 
 ---
 
 ### 2. Register a New Member
+**POST** `/api/library/members`
 
-`POST /api/library/members`
-
-**Request body**
-
-| Field  | Type   | Required | Description   |
-|--------|--------|----------|---------------|
-| name   | String | ✅       | Member name   |
-| email  | String | ✅       | Member email  |
-| phone  | String | ✅       | Phone number  |
-
-**Example request**
-
+**Request Body:**
 ```json
 {
   "name": "John",
@@ -142,11 +144,11 @@ All endpoints are prefixed with `/api/library`. All responses are JSON.
 }
 ```
 
-**Success response — `201 Created`**
-
+**Success Response (201):**
 ```json
 {
   "success": true,
+  "message": "Member registered successfully",
   "data": {
     "id": 1,
     "name": "John",
@@ -156,31 +158,25 @@ All endpoints are prefixed with `/api/library`. All responses are JSON.
 }
 ```
 
-**Errors**
-- `400` — missing required field(s), or invalid email format.
+**Error Response (409) — Duplicate email:**
+```json
+{
+  "success": false,
+  "message": "A member with this email already exists"
+}
+```
 
 ---
 
 ### 3. Borrow a Book
+**POST** `/api/library/borrow/:bookId`
 
-`POST /api/library/borrow/:bookId`
-
-**URL parameter**
-
-| Parameter | Description            |
-|-----------|-------------------------|
+**URL Parameter:**
+| Parameter | Description             |
+|-----------|---------------------------|
 | bookId    | ID of the book to borrow |
 
-**Request body**
-
-| Field       | Type   | Required | Description            |
-|-------------|--------|----------|-------------------------|
-| memberId    | Number | ✅       | Member borrowing the book |
-| borrowDate  | String | ✅       | Borrow date             |
-| returnDate  | String | ✅       | Expected return date    |
-
-**Example request**
-
+**Request Body:**
 ```json
 {
   "memberId": 1,
@@ -189,11 +185,11 @@ All endpoints are prefixed with `/api/library`. All responses are JSON.
 }
 ```
 
-**Success response — `201 Created`**
-
+**Success Response (201):**
 ```json
 {
   "success": true,
+  "message": "Book borrowed successfully",
   "data": {
     "id": 1,
     "bookId": 1,
@@ -205,30 +201,32 @@ All endpoints are prefixed with `/api/library`. All responses are JSON.
 }
 ```
 
-**Errors**
-- `400` — invalid `bookId`/`memberId`, or missing required field(s).
-- `404` — book not found, or member not found.
-- `409` — no copies available for this book.
+**Possible Errors:**
+| Status | Message                                          |
+|--------|---------------------------------------------------|
+| 400    | Invalid book ID                                    |
+| 400    | memberId, borrowDate and returnDate are required   |
+| 404    | Book with ID x not found                           |
+| 404    | Member with ID x not found                         |
+| 400    | No available copies for the book "..."             |
 
 ---
 
 ### 4. Return a Book
+**PUT** `/api/library/return/:borrowId`
 
-`PUT /api/library/return/:borrowId`
+**URL Parameter:**
+| Parameter | Description        |
+|-----------|----------------------|
+| borrowId  | Borrow Record ID     |
 
-**URL parameter**
+**Request Body:** None
 
-| Parameter | Description       |
-|-----------|--------------------|
-| borrowId  | Borrow record ID   |
-
-No request body required.
-
-**Success response — `200 OK`**
-
+**Success Response (200):**
 ```json
 {
   "success": true,
+  "message": "Book returned successfully",
   "data": {
     "id": 1,
     "bookId": 1,
@@ -240,98 +238,153 @@ No request body required.
 }
 ```
 
-**Errors**
-- `400` — invalid `borrowId`.
-- `404` — borrow record not found.
-- `409` — book has already been returned.
+**Possible Errors:**
+| Status | Message                              |
+|--------|----------------------------------------|
+| 400    | Invalid borrow record ID               |
+| 404    | Borrow record with ID x not found     |
+| 400    | This book has already been returned   |
 
 ---
 
 ### 5. Get All Books
+**GET** `/api/library/books`
 
-`GET /api/library/books`
-
-**Success response — `200 OK`**
-
+**Success Response (200):**
 ```json
-[
-  {
-    "id": 1,
-    "title": "Atomic Habits",
-    "author": "James Clear",
-    "category": "Self Help",
-    "totalCopies": 5,
-    "availableCopies": 4
-  }
-]
+{
+  "success": true,
+  "count": 1,
+  "data": [
+    {
+      "id": 1,
+      "title": "Atomic Habits",
+      "author": "James Clear",
+      "category": "Self Help",
+      "totalCopies": 5,
+      "availableCopies": 4
+    }
+  ]
+}
 ```
 
 ---
 
 ### 6. Get All Borrowed Books
+**GET** `/api/library/borrowed`
 
-`GET /api/library/borrowed`
-
-**Success response — `200 OK`**
-
+**Success Response (200):**
 ```json
-[
-  {
-    "borrowId": 1,
-    "bookTitle": "Atomic Habits",
-    "memberName": "John",
-    "borrowDate": "2026-07-05",
-    "returnDate": "2026-07-12",
-    "returnStatus": "borrowed"
-  }
-]
+{
+  "success": true,
+  "count": 1,
+  "data": [
+    {
+      "borrowId": 1,
+      "bookTitle": "Atomic Habits",
+      "memberName": "John",
+      "borrowDate": "2026-07-05",
+      "returnDate": "2026-07-12",
+      "returnStatus": "borrowed"
+    }
+  ]
+}
 ```
 
 ---
 
 ### 7. Get All Members
+**GET** `/api/library/members`
 
-`GET /api/library/members`
-
-**Success response — `200 OK`**
-
+**Success Response (200):**
 ```json
-[
-  {
-    "id": 1,
-    "name": "John",
-    "email": "john@gmail.com",
-    "phone": "9876543210"
-  }
-]
+{
+  "success": true,
+  "count": 1,
+  "data": [
+    {
+      "id": 1,
+      "name": "John",
+      "email": "john@gmail.com",
+      "phone": "9876543210"
+    }
+  ]
+}
 ```
 
 ---
 
-## Validation & Error Handling Summary
+## ✅ Validation & Error Handling
 
-| Scenario                     | Status Code |
-|-------------------------------|--------------|
-| Missing required fields       | 400          |
-| Invalid ID (non-numeric/param) | 400         |
-| Book not found                | 404          |
-| Member not found              | 404          |
-| Borrow record not found       | 404          |
-| No copies available           | 409          |
-| Book already returned         | 409          |
-| Unknown route                 | 404          |
-| Unexpected server error       | 500          |
+| Case                        | Status Code | Example Message                                 |
+|------------------------------|--------------|---------------------------------------------------|
+| Missing required fields      | 400          | "field(s) are required"                          |
+| Invalid ID (non-numeric)     | 400          | "Invalid ... ID"                                   |
+| Book not found                | 404          | "Book with ID x not found"                        |
+| Member not found              | 404          | "Member with ID x not found"                      |
+| Borrow record not found       | 404          | "Borrow record with ID x not found"               |
+| No copies available            | 400          | "No available copies for the book ..."            |
+| Book already returned         | 400          | "This book has already been returned"             |
+| Duplicate member email         | 409          | "A member with this email already exists"         |
+| Unexpected server error        | 500          | "Something went wrong while ..."                  |
+| Unknown route                  | 404          | "Route not found"                                  |
 
-## Testing with Postman
+All controller functions are wrapped in `try/catch` blocks, so any unexpected runtime error returns a clean `500` JSON response instead of crashing the server.
 
-1. Import the base URL `http://localhost:3000` into Postman (or create a new
-   collection pointing at it).
-2. Set `Content-Type: application/json` on all `POST`/`PUT` requests with a body.
-3. Suggested test flow:
-   1. `POST /api/library/books` — add a book.
-   2. `POST /api/library/members` — register a member.
-   3. `POST /api/library/borrow/:bookId` — borrow the book using the member's ID.
-   4. `GET /api/library/books` — confirm `availableCopies` decreased.
-   5. `GET /api/library/borrowed` — see the active borrow record.
-   6. `PUT /api/library/return/:borrowId` — return the book.
-   7. `GET /api/library/books` — confirm `availableCopies` is restored.
+---
+
+## 🧪 Testing with Postman / cURL
+
+Example using cURL:
+
+```bash
+# Add a book
+curl -X POST http://localhost:5000/api/library/books \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Atomic Habits","author":"James Clear","category":"Self Help","totalCopies":5}'
+
+# Register a member
+curl -X POST http://localhost:5000/api/library/members \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John","email":"john@gmail.com","phone":"9876543210"}'
+
+# Borrow a book
+curl -X POST http://localhost:5000/api/library/borrow/1 \
+  -H "Content-Type: application/json" \
+  -d '{"memberId":1,"borrowDate":"2026-07-05","returnDate":"2026-07-12"}'
+
+# Return a book
+curl -X PUT http://localhost:5000/api/library/return/1
+
+# Get all books
+curl http://localhost:5000/api/library/books
+
+# Get all borrowed records
+curl http://localhost:5000/api/library/borrowed
+
+# Get all members
+curl http://localhost:5000/api/library/members
+```
+
+You can also import these routes into **Postman** by manually creating requests for each endpoint listed above.
+
+---
+
+## 📌 Notes
+- All data is stored **in memory** (local JS arrays) and resets whenever the server restarts.
+- IDs are auto-incremented integers, starting from 1.
+- No authentication is implemented — this is a basic CRUD-style demo API.
+
+---
+
+## 🧑‍💻 Concepts Demonstrated
+- Express.js Routing
+- REST API Design
+- Route Parameters & Request Body Handling
+- HTTP Methods (GET, POST, PUT)
+- Array Operations (`push`, `find`, `findIndex`, `filter`, `map`)
+- JavaScript Objects
+- Data Validation
+- Proper HTTP Status Codes
+- JSON Responses
+- Error Handling with try/catch
