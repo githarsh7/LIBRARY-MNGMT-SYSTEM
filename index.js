@@ -14,7 +14,7 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'Library Management API is running 🚀'
+    message: 'Library Management API is running'
   });
 });
 
